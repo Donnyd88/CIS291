@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Feb  4 15:10:07 2024
+
+@author: donny
+"""
+
 import tkinter as tk
 import csv
 import os
@@ -13,6 +20,8 @@ class TestApp():
         self.selected_answer = tk.StringVar(value=None)
         self.score = 0
         self.number_of_wrong_answers = 0
+        self.fail_percantage = .69
+        self.quick_pass_percantage = .90
 
         # Use Radiobuttons in a group
         self.radiobutton1 = tk.Radiobutton(self.root, variable=self.selected_answer, value="1")
@@ -46,8 +55,29 @@ class TestApp():
 
         self.run()
 
+    def calculate_score (self):
+        if self.score > 0:
+            last_question_number = self.question_number -1
+            prec_correct = round((self.score/ last_question_number) * 100, 2)
+            return prec_correct
+        else:
+            return self.score
+        
+
     def update_score_label(self):
-        self.score_label.config(text=f'Score = {self.score}')
+        if self.score > 0:
+            percentage_score = self.calculate_score()
+            self.score_label.config(text=f'Score = {percentage_score}%')
+            if percentage_score > 79:
+                self.score_label.config(fg='green')
+            elif percentage_score > 70:
+                self.score_label.config(fg="orange")
+            else :
+                self.score_label.config(fg="red")
+
+            
+        else:
+            self.score_label.config(text=f'Score = {self.score}')
 
     def disable_radio_buttons(self):
             self.radiobutton1.config(state=tk.DISABLED)
@@ -57,10 +87,15 @@ class TestApp():
     
 
     def test_end(self):
-        if self.question_number >= 10 and self.number_of_wrong_answers >= 5:
-            self.question.config(text="You've Failed")
+        score = self.calculate_score()
+        if self.question_number >= 15 and score <= self.fail_percantage:
+            self.question.config(text="You've Failed.")
             self.test_over = True
-        elif self.question_number >= 10 and self.score >= 7:
+        elif self.question_number >= 15 and score >= self.quick_pass_percantage:
+            self.question.config(text="You've Passed! Good Job!")
+            self.test_over = True
+        
+        elif self.question_number == 20:
             self.question.config(text="You've Passed! Good Job!")
             self.test_over = True
 
