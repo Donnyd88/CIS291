@@ -1,27 +1,28 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Feb  4 15:10:07 2024
-
-@author: donny
-"""
-
 import tkinter as tk
+from tkinter import ttk
+from tkinter import filedialog
 import csv
 import os
 
 
 class TestApp():
-    def __init__(self, filename) -> None:
+    def __init__(self):
         self.root = tk.Tk()
         self.root.geometry("600x400")
         self.root.title("Test App")
-        self.filename = filename
+        self.filename = None
+
+        # Dropdown menu for file selection
+        self.file_menu = tk.Menu(self.root)
+        self.root.config(menu=self.file_menu)
+        self.file_menu.add_command(label="Select File", command=self.select_file)
+
         self.question = tk.Label(self.root, text='')
         self.selected_answer = tk.StringVar(value=None)
         self.score = 0
         self.number_of_wrong_answers = 0
-        self.fail_percantage = .69
-        self.quick_pass_percantage = .90
+        self.fail_percentage = 0.69
+        self.quick_pass_percentage = 0.90
 
         # Use Radiobuttons in a group
         self.radiobutton1 = tk.Radiobutton(self.root, variable=self.selected_answer, value="1")
@@ -29,7 +30,6 @@ class TestApp():
         self.radiobutton3 = tk.Radiobutton(self.root, variable=self.selected_answer, value="3")
         self.radiobutton4 = tk.Radiobutton(self.root, variable=self.selected_answer, value="4")
 
-        
         self.question.grid(row=0, column=0, columnspan=4, pady=5)
         self.radiobutton1.grid(row=1, column=1, sticky='W', pady=(0, 0))
         self.radiobutton2.grid(row=1, column=2, sticky='W', pady=(0, 0))
@@ -53,16 +53,22 @@ class TestApp():
         self.current_index = 0
         self.test_over = False
 
-        self.run()
+        self.root.mainloop()
 
-    def calculate_score (self):
+    def select_file(self):
+        self.filename = filedialog.askopenfilename(initialdir=os.getcwd(), title="Select File",
+                                                   filetypes=(("CSV files", "*.csv"), ("All files", "*.*")))
+        if self.filename:
+            self.read_csv()
+            self.nextquestion()
+
+    def calculate_score(self):
         if self.score > 0:
-            last_question_number = self.question_number -1
-            prec_correct = round((self.score/ last_question_number) * 100, 2)
+            last_question_number = self.question_number - 1
+            prec_correct = round((self.score / last_question_number) * 100, 2)
             return prec_correct
         else:
             return self.score
-        
 
     def update_score_label(self):
         if self.score > 0:
@@ -72,29 +78,25 @@ class TestApp():
                 self.score_label.config(fg='green')
             elif percentage_score > 70:
                 self.score_label.config(fg="orange")
-            else :
+            else:
                 self.score_label.config(fg="red")
-
-            
         else:
             self.score_label.config(text=f'Score = {self.score}')
 
     def disable_radio_buttons(self):
-            self.radiobutton1.config(state=tk.DISABLED)
-            self.radiobutton2.config(state=tk.DISABLED)
-            self.radiobutton3.config(state=tk.DISABLED)
-            self.radiobutton4.config(state=tk.DISABLED)
-    
+        self.radiobutton1.config(state=tk.DISABLED)
+        self.radiobutton2.config(state=tk.DISABLED)
+        self.radiobutton3.config(state=tk.DISABLED)
+        self.radiobutton4.config(state=tk.DISABLED)
 
     def test_end(self):
         score = self.calculate_score()
-        if self.question_number >= 15 and score <= self.fail_percantage:
+        if self.question_number >= 15 and score <= self.fail_percentage:
             self.question.config(text="You've Failed.")
             self.test_over = True
-        elif self.question_number >= 15 and score >= self.quick_pass_percantage:
+        elif self.question_number >= 15 and score >= self.quick_pass_percentage:
             self.question.config(text="You've Passed! Good Job!")
             self.test_over = True
-        
         elif self.question_number == 20:
             self.question.config(text="You've Passed! Good Job!")
             self.test_over = True
@@ -110,7 +112,6 @@ class TestApp():
                 csv_reader = csv.reader(csvfile)
                 for row in csv_reader:
                     self.questions.append(row)
-
         except Exception as e:
             error_message = f"Error loading the file: {str(e)}"
             print(error_message)
@@ -140,13 +141,6 @@ class TestApp():
         if self.test_over:
             self.next_button.config(state=tk.DISABLED)
 
-    def run(self):
-        self.read_csv()
-        if not self.test_over:
-            self.nextquestion()
-        self.root.mainloop()
-
 
 if __name__ == '__main__':
-    filename = 'MCQAnswers.csv'
-    app = TestApp(filename)
+    app = TestApp()
