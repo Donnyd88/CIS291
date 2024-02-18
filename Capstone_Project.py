@@ -3,6 +3,8 @@ from tkinter import ttk
 from tkinter import filedialog
 import csv
 import os
+from pathlib import Path
+from tkinter import PhotoImage
 
 
 class TestApp():
@@ -10,19 +12,33 @@ class TestApp():
         self.root = tk.Tk()
         self.root.geometry("600x400")
         self.root.title("Test App")
+        script_dir = Path(__file__).parent  # Get the directory of the current script
+        file_path = script_dir / 'mccLogo.png'
+        icon = PhotoImage(file=file_path)
+        self.root.iconphoto(False, icon)
         self.filename = None
 
-        # Dropdown menu for file selection
-        self.file_menu = tk.Menu(self.root)
-        self.root.config(menu=self.file_menu)
+        # Menu Bar
+        self.menu_bar = tk.Menu(self.root)
+        self.root.config(menu=self.menu_bar)
+
+        # File Menu
+        self.file_menu = tk.Menu(self.menu_bar, tearoff=0)
+        self.menu_bar.add_cascade(label="File", menu=self.file_menu)
         self.file_menu.add_command(label="Select File", command=self.select_file)
 
+        # Help Menu
+        self.help_menu = tk.Menu(self.menu_bar, tearoff=0)
+        self.menu_bar.add_cascade(label="Help", menu=self.help_menu)
+        self.help_menu.add_command(label="About", command=self.show_about_popup)
+
+        # Dropdown menu for file selection
         self.question = tk.Label(self.root, text='')
         self.selected_answer = tk.StringVar(value=None)
         self.score = 0
         self.number_of_wrong_answers = 0
-        self.fail_percentage = 0.69
-        self.quick_pass_percentage = 0.90
+        self.fail_percentage = 69
+        self.quick_pass_percentage = 90
 
         # Use Radiobuttons in a group
         self.radiobutton1 = tk.Radiobutton(self.root, variable=self.selected_answer, value="1")
@@ -140,6 +156,10 @@ class TestApp():
         self.test_end()
         if self.test_over:
             self.next_button.config(state=tk.DISABLED)
+
+    def show_about_popup(self):
+        about_text = "This is a simple quiz application.\nCreated by Donald Deal."
+        tk.messagebox.showinfo("About", about_text)
 
 
 if __name__ == '__main__':
