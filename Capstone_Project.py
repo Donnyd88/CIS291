@@ -18,6 +18,32 @@ class TestApp():
         self.root.iconphoto(False, icon)
         self.filename = None
 
+        # Welcome Page
+        self.show_welcome_page()
+
+        self.root.mainloop()
+
+    def show_welcome_page(self):
+        self.welcome_frame = tk.Frame(self.root)
+        self.welcome_frame.pack(fill='both', expand=True)
+
+        welcome_label = tk.Label(self.welcome_frame, text="Welcome to the Test App!", font=('Helvetica', 20))
+        welcome_label.pack(pady=20)
+
+        # Student ID Entry
+        student_id_label = tk.Label(self.welcome_frame, text="Enter Student ID:")
+        student_id_label.pack(pady=5)
+        self.student_id_entry = tk.Entry(self.welcome_frame)
+        self.student_id_entry.pack(pady=5)
+
+        start_button = tk.Button(self.welcome_frame, text="Start Test", command=self.start_test)
+        start_button.pack(pady=10)
+
+
+    def start_test(self):
+        # Destroy the welcome frame and start the test
+        self.welcome_frame.destroy()
+
         # Menu Bar
         self.menu_bar = tk.Menu(self.root)
         self.root.config(menu=self.menu_bar)
@@ -68,8 +94,6 @@ class TestApp():
         self.questions = []
         self.current_index = 0
         self.test_over = False
-
-        self.root.mainloop()
 
     def select_file(self):
         self.filename = filedialog.askopenfilename(initialdir=os.getcwd(), title="Select File",
