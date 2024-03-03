@@ -17,6 +17,7 @@ class TestApp():
         icon = PhotoImage(file=file_path)
         self.root.iconphoto(False, icon)
         self.filename = None
+        self.text = False
 
         # Welcome Page
         self.show_welcome_page()
@@ -52,6 +53,9 @@ class TestApp():
         self.file_menu = tk.Menu(self.menu_bar, tearoff=0)
         self.menu_bar.add_cascade(label="File", menu=self.file_menu)
         self.file_menu.add_command(label="Select File", command=self.select_file)
+        self.file_menu.add_separator()  # Add a separator
+        self.file_menu.add_command(label="Quit", command=self.quit_application) 
+
 
         # Help Menu
         self.help_menu = tk.Menu(self.menu_bar, tearoff=0)
@@ -78,6 +82,11 @@ class TestApp():
         self.radiobutton3.grid(row=2, column=1, sticky='W', pady=(0, 0))
         self.radiobutton4.grid(row=2, column=2, sticky='W', pady=(0, 0))
 
+        # Create and hide text entry
+        self.text_entry = tk.Entry(self.root)
+        self.text_entry.grid(row=4, column=0, columnspan=4, pady=10)
+        self.text_entry.grid_forget()  # Hide the text entry initially
+
         for i in range(5):
             self.root.grid_rowconfigure(i, weight=1)
 
@@ -94,6 +103,14 @@ class TestApp():
         self.questions = []
         self.current_index = 0
         self.test_over = False
+
+    def quit_application(self):
+        self.root.quit()
+
+    def show_about_popup(self):
+        about_text = "This is a simple quiz application.\nCreated by Donald Deal."
+        tk.messagebox.showinfo("About", about_text)
+
 
     def select_file(self):
         self.filename = filedialog.askopenfilename(initialdir=os.getcwd(), title="Select File",
@@ -129,6 +146,32 @@ class TestApp():
         self.radiobutton3.config(state=tk.DISABLED)
         self.radiobutton4.config(state=tk.DISABLED)
 
+
+    def enable_radio_buttons(self):
+        self.radiobutton1.config(state=tk.NORMAL)
+        self.radiobutton2.config(state=tk.NORMAL)
+        self.radiobutton3.config(state=tk.NORMAL)
+        self.radiobutton4.config(state=tk.NORMAL)
+
+    def hide_radio_buttons(self):
+        if hasattr(self, 'radio_buttons'):
+            for button in self.radio_buttons:
+                button.config(state=tk.HIDDEN)
+
+    def show_radio_buttons(self):
+        if hasattr(self, 'radio_buttons'):
+            for button in self.radio_buttons:
+                button.config(state=tk.NORMAL)
+
+    def hide_text_entry(self):
+        # Hide the text entry
+        self.text_entry.grid_remove()
+
+    def show_text_entry(self):
+        # Show the text entry
+        self.text_entry.grid(row=3, column=0, columnspan=4, pady=10)
+
+
     def test_end(self):
         score = self.calculate_score()
         if self.question_number >= 15 and score <= self.fail_percentage:
@@ -157,16 +200,35 @@ class TestApp():
             print(error_message)
 
     def checkanswer(self):
+        text_answer = self.text_entry.get().strip().lower()
+        correct_answer = self.questions[self.current_index][5].strip().lower()
         selected_answer_value = self.selected_answer.get()
-        correct_answer = self.questions[self.current_index][5]
-        print(f'Correct answer is: {correct_answer}')
-        if selected_answer_value != correct_answer:
-            self.number_of_wrong_answers += 1
+        
+        if self.text:
+            if text_answer == correct_answer:
+                self.score += 1
+                print("You were right! TEXT")
+            else:
+                print("TEXT ANSWER incorrect!")
+                self.number_of_wrong_answers += 1
         else:
-            self.score += 1
-        print(f"Selected option: {selected_answer_value}")
+            if selected_answer_value == correct_answer:
+                self.score += 1
+                print("You were right! MULTIPLE CHOICE")
+            else:
+                print("incorrect! MULTIPLE CHOICE")
+                self.number_of_wrong_answers += 1
+
+        print(f'Correct answer is: {correct_answer}')
+        print(f"Inputted Text: {text_answer}")
+        if not self.text:  # Only print selected option for multiple-choice questions
+            print(f"Selected option: {selected_answer_value}")
+
+
+
 
     def nextquestion(self):
+        
         self.checkanswer()
         self.question_number += 1
         self.current_index = (self.current_index + 1) % len(self.questions)
@@ -175,15 +237,29 @@ class TestApp():
         self.radiobutton2.config(text=self.questions[self.current_index][2])
         self.radiobutton3.config(text=self.questions[self.current_index][3])
         self.radiobutton4.config(text=self.questions[self.current_index][4])
-        self.selected_answer.set(None)
+
+        question_type = self.questions[self.current_index][-1]
+        print(f"question type: {question_type}")
+        self.text = False
+        if question_type == "text":
+            self.text = True
+            self.disable_radio_buttons()
+            self.show_text_entry()
+            self.selected_answer.set(None)  # Reset selected_answer variable to None for text questions
+            # Move the Submit button to a different row
+            self.next_button.grid(row=5, column=0, columnspan=4, pady=20)
+        else:
+            self.hide_text_entry()
+            self.enable_radio_buttons()
+            self.selected_answer.set(None)  # Reset selected_answer variable to None for text questions
+            # Move the Submit button back to row 3
+            self.next_button.grid(row=3, column=0, columnspan=4, pady=20)
+
         self.update_score_label()
         self.test_end()
         if self.test_over:
             self.next_button.config(state=tk.DISABLED)
 
-    def show_about_popup(self):
-        about_text = "This is a simple quiz application.\nCreated by Donald Deal."
-        tk.messagebox.showinfo("About", about_text)
 
 
 if __name__ == '__main__':
