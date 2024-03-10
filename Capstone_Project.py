@@ -19,12 +19,34 @@ class TestApp():
         self.filename = None
         self.text = False
 
+        self.num_of_test_questions = 0
+
+        # Initialize educator_frame 
+        self.educator_frame = None
+
+        self.read_config_file_percents()
+
         # Welcome Page
         self.show_welcome_page()
 
         self.root.mainloop()
 
+
+    def read_config_file_percents(self):
+        try:
+            with open('config.csv', 'r') as file:
+                reader = csv.reader(file)
+                self.quick_pass_percentage, self.fail_percentage, self.end_question_num = next(reader)
+        
+        except FileNotFoundError:
+            self.fail_percentage = 69
+            self.quick_pass_percentage = 90
+            self.end_question_num = 15
+
+
     def show_welcome_page(self):
+        if self.educator_frame:
+            self.educator_frame.destroy()
         self.welcome_frame = tk.Frame(self.root)
         self.welcome_frame.pack(fill='both', expand=True)
 
@@ -37,8 +59,92 @@ class TestApp():
         self.student_id_entry = tk.Entry(self.welcome_frame)
         self.student_id_entry.pack(pady=5)
 
+        educator_button = tk.Button(self.welcome_frame, text= "For Educators", command = self.for_educators_page)
+        educator_button.pack(pady=10)
+
         start_button = tk.Button(self.welcome_frame, text="Start Test", command=self.start_test)
         start_button.pack(pady=10)
+
+
+    def for_educators_page(self):
+        self.welcome_frame.destroy()
+        self.educator_frame = tk.Frame(self.root)
+        self.educator_frame.pack(fill="both", expand=True)
+
+        welcome_teachers_label = tk.Label(self.educator_frame, text = "Welcome Educators!", font=('Helvetica', 20))
+        welcome_teachers_label.pack(pady=10)
+
+        pass_percent_label = tk.Label(self.educator_frame, text="Enter the Quick Pass Percentage:")
+        pass_percent_label.pack(pady=5)
+
+        self.pass_percent_entry = tk.Entry(self.educator_frame)
+        self.pass_percent_entry.pack(pady=5)
+
+        fail_percent_label = tk.Label(self.educator_frame, text ="Enter the Quick Fail Percentage:")
+        fail_percent_label.pack(pady=5)
+
+        self.fail_percent_entry = tk.Entry(self.educator_frame)
+        self.fail_percent_entry.pack(pady=5)
+        
+        check_test_end_label = tk.Label(self.educator_frame, text = "What question number should the Quick Pass or Quick fail activete on?")
+        check_test_end_label.pack(pady=5)
+
+        self.check_test_end_entry = tk.Entry(self.educator_frame)
+        self.check_test_end_entry.pack(pady=5)
+
+        back_button = tk.Button(self.educator_frame, text = "Back", command = self.show_welcome_page)
+        back_button.pack(pady=10)
+       
+        def save_variables():
+
+            # Get the values from the Entry widgets
+            pass_percent = self.pass_percent_entry.get()
+            fail_percent = self.fail_percent_entry.get()
+            test_end_num = self.check_test_end_entry.get()
+
+            try:
+                # Open the CSV file in read mode
+                with open('config.csv', 'r', newline='') as file:
+                    # Create a CSV reader object
+                    reader = csv.reader(file)
+                    # Read the existing values from the CSV file
+                    existing_values = next(reader, [])
+            except FileNotFoundError:
+                # If the file doesn't exist, create a new file with default values
+                existing_values = [90, 69, 15]
+                with open('config.csv', 'w', newline='') as file:
+                    writer = csv.writer(file)
+                    writer.writerow(existing_values)
+
+            try:
+                # Update the existing values with the new values from the Entry widgets
+                if pass_percent:
+                    existing_values[0] = pass_percent
+                if fail_percent:
+                    existing_values[1] = fail_percent
+                if test_end_num:
+                    existing_values[2] = test_end_num
+            except IndexError:
+                # If there are not enough elements in existing_values, extend it with None values
+                while len(existing_values) < 3:
+                    existing_values.append(None)
+                # Update the existing values again
+                if pass_percent:
+                    existing_values[0] = pass_percent
+                if fail_percent:
+                    existing_values[1] = fail_percent
+                if test_end_num:
+                    existing_values[2] = test_end_num
+
+            # Open the CSV file in write mode
+            with open('config.csv', 'w', newline='') as file:
+                # Create a CSV writer object
+                writer = csv.writer(file)
+                # Write the updated values to the CSV file
+                writer.writerow(existing_values)
+
+        save_button = tk.Button(self.educator_frame, text = "Save", command = save_variables)
+        save_button.pack(pady=10)
 
 
     def start_test(self):
@@ -67,8 +173,6 @@ class TestApp():
         self.selected_answer = tk.StringVar(value=None)
         self.score = 0
         self.number_of_wrong_answers = 0
-        self.fail_percentage = 69
-        self.quick_pass_percentage = 90
 
         # Use Radiobuttons in a group
         self.radiobutton1 = tk.Radiobutton(self.root, variable=self.selected_answer, value="1")
@@ -174,13 +278,13 @@ class TestApp():
 
     def test_end(self):
         score = self.calculate_score()
-        if self.question_number >= 15 and score <= self.fail_percentage:
+        if self.question_number >= int(self.end_question_num) and score <= int(self.fail_percentage):
             self.question.config(text="You've Failed.")
             self.test_over = True
-        elif self.question_number >= 15 and score >= self.quick_pass_percentage:
+        elif self.question_number >= int(self.end_question_num) and score >= int(self.quick_pass_percentage):
             self.question.config(text="You've Passed! Good Job!")
             self.test_over = True
-        elif self.question_number == 20:
+        elif self.question_number == (int(self.num_of_test_questions) - 1):
             self.question.config(text="You've Passed! Good Job!")
             self.test_over = True
 
@@ -195,6 +299,7 @@ class TestApp():
                 csv_reader = csv.reader(csvfile)
                 for row in csv_reader:
                     self.questions.append(row)
+                    self.num_of_test_questions += 1
         except Exception as e:
             error_message = f"Error loading the file: {str(e)}"
             print(error_message)
