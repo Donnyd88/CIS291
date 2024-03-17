@@ -1,10 +1,10 @@
 import tkinter as tk
-from tkinter import ttk
-from tkinter import filedialog
+from tkinter import ttk, filedialog, messagebox 
 import csv
 import os
 from pathlib import Path
 from tkinter import PhotoImage
+import logging
 
 
 class TestApp():
@@ -16,13 +16,22 @@ class TestApp():
         file_path = script_dir / 'mccLogo.png'
         icon = PhotoImage(file=file_path)
         self.root.iconphoto(False, icon)
-        self.filename = None
+        self.filename = script_dir / 'MCQAnswersPlusText.csv'
         self.text = False
+        self.student_id = None 
 
         self.num_of_test_questions = 0
 
         # Initialize educator_frame 
         self.educator_frame = None
+
+        # Initialize CSV file path
+        self.csv_file_path = "test_scores.csv"
+
+        # Check if the CSV file exists
+        if not os.path.isfile(self.csv_file_path):
+            # If the file doesn't exist, create it and write headers
+            self.write_csv_headers()
 
         self.read_config_file_percents()
 
@@ -31,6 +40,18 @@ class TestApp():
 
         self.root.mainloop()
 
+
+    def write_csv_headers(self):
+        # Define the headers
+        headers = ["Student ID", "Score"]
+        
+        # Open the CSV file in write mode
+        with open(self.csv_file_path, 'w', newline='') as csvfile:
+            # Create a CSV writer object
+            csv_writer = csv.writer(csvfile)
+            
+            # Write the headers to the CSV file
+            csv_writer.writerow(headers)
 
     def read_config_file_percents(self):
         try:
@@ -55,24 +76,63 @@ class TestApp():
 
         # Student ID Entry
         student_id_label = tk.Label(self.welcome_frame, text="Enter Student ID:")
-        student_id_label.pack(pady=5)
+        student_id_label.pack(pady=(30,10))
         self.student_id_entry = tk.Entry(self.welcome_frame)
-        self.student_id_entry.pack(pady=5)
+        self.student_id_entry.pack(pady=10)
 
-        educator_button = tk.Button(self.welcome_frame, text= "For Educators", command = self.for_educators_page)
-        educator_button.pack(pady=10)
+        button_frame = tk.Frame(self.welcome_frame)
+        button_frame.pack(side="bottom", pady=(0, 100))
 
-        start_button = tk.Button(self.welcome_frame, text="Start Test", command=self.start_test)
-        start_button.pack(pady=10)
+        educator_button = tk.Button(button_frame, text= "For Educators", command = self.for_educators_page)
+        educator_button.pack(side="left", padx=10, pady=10) 
+
+        start_button = tk.Button(button_frame, text="Start Test", command=self.start_test)
+        start_button.pack(side="left", padx=10, pady=10)
 
 
     def for_educators_page(self):
-        self.welcome_frame.destroy()
+        # Destroy the existing frames
+        if self.educator_frame:
+            self.educator_frame.destroy()
+        if self.welcome_frame:
+            self.welcome_frame.destroy()
+
+        # Create the educator frame
+        self.educator_frame = tk.Frame(self.root)
+        self.educator_frame.pack(fill="both", expand=True)
+
+        # Password Entry
+        password_label = tk.Label(self.educator_frame, text="Enter password:")
+        password_label.pack(pady=5)
+        self.password_entry = tk.Entry(self.educator_frame, show="*")  # Show asterisks for password input
+        self.password_entry.pack(pady=5)
+
+        # Button to submit password
+        submit_button = tk.Button(self.educator_frame, text="Submit", command=self.check_password)
+        submit_button.pack(pady=5)
+
+    def check_password(self):
+        # Get the entered password
+        entered_password = self.password_entry.get()
+
+        # Predefined password (change this to your desired password)
+        correct_password = "your_password_here"
+
+        if entered_password == correct_password:
+            # Password is correct, proceed to the educator page
+            self.show_educator_page()
+        else:
+            # Password is incorrect, display an error message
+            messagebox.showerror("Error", "Incorrect password. Please try again.")
+
+    def show_educator_page(self):
+        if self.educator_frame:
+            self.educator_frame.destroy()
         self.educator_frame = tk.Frame(self.root)
         self.educator_frame.pack(fill="both", expand=True)
 
         welcome_teachers_label = tk.Label(self.educator_frame, text = "Welcome Educators!", font=('Helvetica', 20))
-        welcome_teachers_label.pack(pady=10)
+        welcome_teachers_label.pack(pady=20)
 
         pass_percent_label = tk.Label(self.educator_frame, text="Enter the Quick Pass Percentage:")
         pass_percent_label.pack(pady=5)
@@ -92,8 +152,11 @@ class TestApp():
         self.check_test_end_entry = tk.Entry(self.educator_frame)
         self.check_test_end_entry.pack(pady=5)
 
-        back_button = tk.Button(self.educator_frame, text = "Back", command = self.show_welcome_page)
-        back_button.pack(pady=10)
+        button_frame = tk.Frame(self.educator_frame)
+        button_frame.pack(side="bottom", pady=(0, 100))
+
+        back_button = tk.Button(button_frame, text = "Back", command = self.show_welcome_page)
+        back_button.pack(side="left", padx=10, pady=10)
        
         def save_variables():
 
@@ -143,11 +206,13 @@ class TestApp():
                 # Write the updated values to the CSV file
                 writer.writerow(existing_values)
 
-        save_button = tk.Button(self.educator_frame, text = "Save", command = save_variables)
-        save_button.pack(pady=10)
+        save_button = tk.Button(button_frame, text = "Save", command = save_variables)
+        save_button.pack(side="left", padx=10, pady=10)
 
 
     def start_test(self):
+
+        self.student_id = self.student_id_entry.get()
         # Destroy the welcome frame and start the test
         self.welcome_frame.destroy()
 
@@ -207,6 +272,8 @@ class TestApp():
         self.questions = []
         self.current_index = 0
         self.test_over = False
+        self.read_csv()
+        self.nextquestion()
 
     def quit_application(self):
         self.root.quit()
@@ -290,10 +357,21 @@ class TestApp():
 
         if self.test_over:
             self.disable_radio_buttons()
+            self.write_test_score()
+
+    def write_test_score(self):
+        # Open the CSV file in append mode
+        with open(self.csv_file_path, 'a', newline='') as csvfile:
+            # Create a CSV writer object
+            csv_writer = csv.writer(csvfile)
+            
+            # Write student ID and score to the CSV file
+            csv_writer.writerow([self.student_id, self.score])
 
     def read_csv(self):
         try:
             file_path = os.path.abspath(self.filename)
+            logging.info("Absolute path: %s", file_path)
             print("Absolute path:", file_path)
             with open(file_path, 'r', newline='') as csvfile:
                 csv_reader = csv.reader(csvfile)
@@ -303,6 +381,7 @@ class TestApp():
         except Exception as e:
             error_message = f"Error loading the file: {str(e)}"
             print(error_message)
+            logging.error(error_message)
 
     def checkanswer(self):
         text_answer = self.text_entry.get().strip().lower()
@@ -352,7 +431,7 @@ class TestApp():
             self.show_text_entry()
             self.selected_answer.set(None)  # Reset selected_answer variable to None for text questions
             # Move the Submit button to a different row
-            self.next_button.grid(row=5, column=0, columnspan=4, pady=20)
+            self.next_button.grid(row=4, column=0, columnspan=4, pady=20)
         else:
             self.hide_text_entry()
             self.enable_radio_buttons()
