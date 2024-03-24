@@ -19,6 +19,8 @@ class TestApp():
         self.filename = script_dir / 'MCQAnswersPlusText.csv'
         self.text = False
         self.student_id = None 
+        self.correct_password = "password"
+        self.error = False
 
         self.num_of_test_questions = 0
 
@@ -65,6 +67,18 @@ class TestApp():
             self.end_question_num = 15
 
 
+    def can_start_test(self):
+        # Get the entered student ID
+        student_id = self.student_id_entry.get()
+
+        if student_id.strip() == "":
+            # If the student ID entry is empty, display an error message
+            self.error_label.config(text="Please enter a student ID.")
+        else:
+            # Otherwise, proceed with starting the test (you can replace this with your actual test logic)
+            self.error_label.config(text="")  # Clear the error message
+            self.start_test()
+
     def show_welcome_page(self):
         if self.educator_frame:
             self.educator_frame.destroy()
@@ -75,20 +89,23 @@ class TestApp():
         welcome_label.pack(pady=20)
 
         # Student ID Entry
-        student_id_label = tk.Label(self.welcome_frame, text="Enter Student ID:")
+        student_id_label = tk.Label(self.welcome_frame, text="Enter Student ID or Name:")
         student_id_label.pack(pady=(30,10))
         self.student_id_entry = tk.Entry(self.welcome_frame)
-        self.student_id_entry.pack(pady=10)
+        self.student_id_entry.pack(pady=5)
 
         button_frame = tk.Frame(self.welcome_frame)
         button_frame.pack(side="bottom", pady=(0, 100))
 
-        educator_button = tk.Button(button_frame, text= "For Educators", command = self.for_educators_page)
-        educator_button.pack(side="left", padx=10, pady=10) 
+        self.error_label = tk.Label(self.welcome_frame,  fg="red", font=('Helvetica', 12), text="")
+        self.error_label.pack(side="bottom", padx=10, pady=10)
 
-        start_button = tk.Button(button_frame, text="Start Test", command=self.start_test)
+        educator_button = tk.Button(button_frame, text="For Educators", command=self.for_educators_page)
+        educator_button.pack(side="left", padx=10, pady=10)
+
+    
+        start_button = tk.Button(button_frame, text="Start Test", command=self.can_start_test)
         start_button.pack(side="left", padx=10, pady=10)
-
 
     def for_educators_page(self):
         # Destroy the existing frames
@@ -115,10 +132,8 @@ class TestApp():
         # Get the entered password
         entered_password = self.password_entry.get()
 
-        # Predefined password (change this to your desired password)
-        correct_password = "your_password_here"
-
-        if entered_password == correct_password:
+        
+        if entered_password == self.correct_password:
             # Password is correct, proceed to the educator page
             self.show_educator_page()
         else:
@@ -157,7 +172,9 @@ class TestApp():
 
         back_button = tk.Button(button_frame, text = "Back", command = self.show_welcome_page)
         back_button.pack(side="left", padx=10, pady=10)
-       
+
+
+        
         def save_variables():
 
             # Get the values from the Entry widgets
@@ -210,6 +227,13 @@ class TestApp():
         save_button.pack(side="left", padx=10, pady=10)
 
 
+
+    def is_valid_student_id(self):
+        self.student_id = self.student_id_entry.get()
+        if self.student_id.strip() == "":
+            self.error_text = "Please enter your student ID."
+        return self.student_id.strip() != ""
+    
     def start_test(self):
 
         self.student_id = self.student_id_entry.get()
