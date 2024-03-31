@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 from tkinter import PhotoImage
 import logging
+import bcrypt
 
 
 class TestApp():
@@ -41,6 +42,24 @@ class TestApp():
         self.show_welcome_page()
 
         self.root.mainloop()
+
+    def hash_password(self, password):
+        # Generate a salt and hash the password
+        salt = bcrypt.gensalt()
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
+        return hashed_password
+
+    def check_password_with_hash(self, plain_password, hashed_password):
+        # Ensure plain_password is encoded as bytes
+        if isinstance(plain_password, str):
+            plain_password = plain_password.encode('utf-8')
+            
+        # Ensure hashed_password is encoded as bytes
+        if isinstance(hashed_password, str):
+            hashed_password = hashed_password.encode('utf-8')
+
+        return bcrypt.checkpw(plain_password, hashed_password)
+
 
 
     def write_csv_headers(self):
@@ -133,7 +152,7 @@ class TestApp():
         entered_password = self.password_entry.get()
 
         
-        if entered_password == self.correct_password:
+        if  self.check_password_with_hash(self.correct_password, self.hash_password(entered_password)):
             # Password is correct, proceed to the educator page
             self.show_educator_page()
         else:
