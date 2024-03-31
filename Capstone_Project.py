@@ -94,7 +94,6 @@ class TestApp():
             # If the student ID entry is empty, display an error message
             self.error_label.config(text="Please enter a student ID.")
         else:
-            # Otherwise, proceed with starting the test (you can replace this with your actual test logic)
             self.error_label.config(text="")  # Clear the error message
             self.start_test()
 
@@ -153,10 +152,9 @@ class TestApp():
 
         
         if  self.check_password_with_hash(self.correct_password, self.hash_password(entered_password)):
-            # Password is correct, proceed to the educator page
+
             self.show_educator_page()
         else:
-            # Password is incorrect, display an error message
             messagebox.showerror("Error", "Incorrect password. Please try again.")
 
     def show_educator_page(self):
