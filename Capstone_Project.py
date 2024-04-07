@@ -5,12 +5,13 @@ import os
 from pathlib import Path
 from tkinter import PhotoImage
 import logging
+import bcrypt
 
 
 class TestApp():
     def __init__(self):
         self.root = tk.Tk()
-        self.root.geometry("600x400")
+        self.root.geometry("1200x800")
         self.root.title("Test App")
         script_dir = Path(__file__).parent  # Get the directory of the current script
         file_path = script_dir / 'mccLogo.png'
@@ -19,6 +20,9 @@ class TestApp():
         self.filename = script_dir / 'MCQAnswersPlusText.csv'
         self.text = False
         self.student_id = None 
+        self.correct_password = "password"
+        self.error = False
+        
 
         self.num_of_test_questions = 0
 
@@ -35,10 +39,26 @@ class TestApp():
 
         self.read_config_file_percents()
 
+
         # Welcome Page
         self.show_welcome_page()
 
         self.root.mainloop()
+
+    def hash_password(self, password):
+        # Generate a salt and hash the password
+        salt = bcrypt.gensalt()
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
+        return hashed_password
+
+    def check_password_with_hash(self, plain_password, hashed_password):
+        # Ensure plain_password is encoded as bytes
+        plain_password_bytes = plain_password.encode('utf-8')
+
+        return bcrypt.checkpw(plain_password_bytes, hashed_password)
+
+       
+
 
 
     def write_csv_headers(self):
@@ -57,13 +77,32 @@ class TestApp():
         try:
             with open('config.csv', 'r') as file:
                 reader = csv.reader(file)
-                self.quick_pass_percentage, self.fail_percentage, self.end_question_num = next(reader)
-        
+                self.quick_pass_percentage, self.fail_percentage, self.end_question_num, hashed_password = next(reader)
+                self.correct_password = hashed_password.encode('utf-8')
+           
+                
+            self.quick_pass_percentage = int(self.quick_pass_percentage)
+            self.fail_percentage = int(self.fail_percentage)
+            self.end_question_num = int(self.end_question_num)
+            
         except FileNotFoundError:
-            self.fail_percentage = 69
-            self.quick_pass_percentage = 90
-            self.end_question_num = 15
+            # If the file doesn't exist, create a new file with default values
+            self.correct_password = self.hash_password(self.correct_password)
+            existing_values = [90, 69, 15, self.correct_password.decode('utf-8')]
+            with open('config.csv', 'w', newline='') as file:
+                writer = csv.writer(file)
+                writer.writerow(existing_values)
 
+    def can_start_test(self):
+        # Get the entered student ID
+        student_id = self.student_id_entry.get()
+
+        if student_id.strip() == "":
+            # If the student ID entry is empty, display an error message
+            self.error_label.config(text="Please enter a student ID.")
+        else:
+            self.error_label.config(text="")  # Clear the error message
+            self.start_test()
 
     def show_welcome_page(self):
         if self.educator_frame:
@@ -75,20 +114,23 @@ class TestApp():
         welcome_label.pack(pady=20)
 
         # Student ID Entry
-        student_id_label = tk.Label(self.welcome_frame, text="Enter Student ID:")
+        student_id_label = tk.Label(self.welcome_frame, text="Enter Student ID or Name:")
         student_id_label.pack(pady=(30,10))
         self.student_id_entry = tk.Entry(self.welcome_frame)
-        self.student_id_entry.pack(pady=10)
+        self.student_id_entry.pack(pady=5)
 
         button_frame = tk.Frame(self.welcome_frame)
         button_frame.pack(side="bottom", pady=(0, 100))
 
-        educator_button = tk.Button(button_frame, text= "For Educators", command = self.for_educators_page)
-        educator_button.pack(side="left", padx=10, pady=10) 
+        self.error_label = tk.Label(self.welcome_frame,  fg="red", font=('Helvetica', 12), text="")
+        self.error_label.pack(side="bottom", padx=10, pady=10)
 
-        start_button = tk.Button(button_frame, text="Start Test", command=self.start_test)
+        educator_button = tk.Button(button_frame, text="For Educators", command=self.for_educators_page)
+        educator_button.pack(side="left", padx=10, pady=10)
+
+    
+        start_button = tk.Button(button_frame, text="Start Test", command=self.can_start_test)
         start_button.pack(side="left", padx=10, pady=10)
-
 
     def for_educators_page(self):
         # Destroy the existing frames
@@ -115,14 +157,11 @@ class TestApp():
         # Get the entered password
         entered_password = self.password_entry.get()
 
-        # Predefined password (change this to your desired password)
-        correct_password = "your_password_here"
+        
+        if  self.check_password_with_hash(entered_password, self.correct_password):
 
-        if entered_password == correct_password:
-            # Password is correct, proceed to the educator page
             self.show_educator_page()
         else:
-            # Password is incorrect, display an error message
             messagebox.showerror("Error", "Incorrect password. Please try again.")
 
     def show_educator_page(self):
@@ -152,64 +191,111 @@ class TestApp():
         self.check_test_end_entry = tk.Entry(self.educator_frame)
         self.check_test_end_entry.pack(pady=5)
 
+        update_password_label = tk.Label(self.educator_frame, text = "Enter new password:")
+        update_password_label.pack(pady=5)
+
+        self.update_password_entry = tk.Entry(self.educator_frame, show = "*")
+        self.update_password_entry.pack(pady=5)
+
+
+        self.verify_update_password_label = tk.Label(self.educator_frame, text = "Re-enter new password:")
+        self.verify_update_password_label.pack(pady=5)
+
+        self.verify_update_password_entry = tk.Entry(self.educator_frame, show = "*")
+        self.verify_update_password_entry.pack(pady=5)
+
+        self.apply_outcome_label = tk.Label(self.educator_frame, text = "")
+        self.apply_outcome_label.pack(pady=5)
+
         button_frame = tk.Frame(self.educator_frame)
         button_frame.pack(side="bottom", pady=(0, 100))
 
         back_button = tk.Button(button_frame, text = "Back", command = self.show_welcome_page)
         back_button.pack(side="left", padx=10, pady=10)
-       
+
+
+        
         def save_variables():
-
             # Get the values from the Entry widgets
-            pass_percent = self.pass_percent_entry.get()
-            fail_percent = self.fail_percent_entry.get()
-            test_end_num = self.check_test_end_entry.get()
+            pass_percent_str = self.pass_percent_entry.get()
+            fail_percent_str = self.fail_percent_entry.get()
+            test_end_num_str = self.check_test_end_entry.get()
+            update_password = self.update_password_entry.get()
+            verify_update_password = self.verify_update_password_entry.get()
 
-            try:
-                # Open the CSV file in read mode
-                with open('config.csv', 'r', newline='') as file:
-                    # Create a CSV reader object
-                    reader = csv.reader(file)
-                    # Read the existing values from the CSV file
-                    existing_values = next(reader, [])
-            except FileNotFoundError:
-                # If the file doesn't exist, create a new file with default values
-                existing_values = [90, 69, 15]
-                with open('config.csv', 'w', newline='') as file:
-                    writer = csv.writer(file)
-                    writer.writerow(existing_values)
+            # Validate and update pass_percent if it's not empty
+            if pass_percent_str:
+                try:
+                    pass_percent = int(pass_percent_str)
+                except ValueError:
+                    self.apply_outcome_label.config(text="Invalid input for pass percentage")
+                    return
+            else:
+                pass_percent = None
 
-            try:
-                # Update the existing values with the new values from the Entry widgets
-                if pass_percent:
-                    existing_values[0] = pass_percent
-                if fail_percent:
-                    existing_values[1] = fail_percent
-                if test_end_num:
-                    existing_values[2] = test_end_num
-            except IndexError:
-                # If there are not enough elements in existing_values, extend it with None values
-                while len(existing_values) < 3:
-                    existing_values.append(None)
-                # Update the existing values again
-                if pass_percent:
-                    existing_values[0] = pass_percent
-                if fail_percent:
-                    existing_values[1] = fail_percent
-                if test_end_num:
-                    existing_values[2] = test_end_num
+            # Validate and update fail_percent if it's not empty
+            if fail_percent_str:
+                try:
+                    fail_percent = int(fail_percent_str)
+                except ValueError:
+                    self.apply_outcome_label.config(text="Invalid input for fail percentage")
+                    return
+            else:
+                fail_percent = None
 
-            # Open the CSV file in write mode
+            # Validate and update test_end_num if it's not empty
+            if test_end_num_str:
+                try:
+                    test_end_num = int(test_end_num_str)
+                except ValueError:
+                    self.apply_outcome_label.config(text="Invalid input for test end number")
+                    return
+            else:
+                test_end_num = None
+
+            if update_password and verify_update_password and update_password != verify_update_password:
+                self.apply_outcome_label.config(text="Passwords do not match")
+                return
+
+         
+
+            existing_values = [90, 69, 15, "password"]
+
+            # Update the existing values with the new values from the Entry widgets
+            if pass_percent is not None:
+                existing_values[0] = pass_percent
+            if fail_percent is not None:
+                existing_values[1] = fail_percent
+            if test_end_num is not None:
+                existing_values[2] = test_end_num
+            if update_password and verify_update_password and (update_password == verify_update_password):
+                # Hash the new password
+                update_password = self.hash_password(update_password).decode('utf-8')
+                existing_values[3] = update_password
+            else:
+                self.apply_outcome_label.config(text="Passwords do not match")
+                return  # Return from the function if passwords don't match
+
+
+            # Write the updated values back to the CSV file
             with open('config.csv', 'w', newline='') as file:
-                # Create a CSV writer object
                 writer = csv.writer(file)
-                # Write the updated values to the CSV file
                 writer.writerow(existing_values)
+                print(existing_values)
+                self.apply_outcome_label.config(text="Settings have been updated successfully! Restart for new password to take effect.")
+
 
         save_button = tk.Button(button_frame, text = "Save", command = save_variables)
         save_button.pack(side="left", padx=10, pady=10)
 
 
+
+    def is_valid_student_id(self):
+        self.student_id = self.student_id_entry.get()
+        if self.student_id.strip() == "":
+            self.error_text = "Please enter your student ID."
+        return self.student_id.strip() != ""
+    
     def start_test(self):
 
         self.student_id = self.student_id_entry.get()
