@@ -2,7 +2,6 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox 
 import csv
 import os
-from pathlib import Path
 from tkinter import PhotoImage
 import logging
 import bcrypt
@@ -23,11 +22,11 @@ class TestApp():
         self.root.title("Test App")
         self.custom_font = Font(family="Lato", size=15)
         self.title_font = Font(family="Lato", size=20, weight="bold", slant="italic", underline=1)
-        script_dir = Path(__file__).parent  # Get the directory of the current script
-        file_path = script_dir / 'mccLogo.png'
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        file_path = os.path.join(script_dir, 'mccLogo.png')
         icon = PhotoImage(file=file_path)
         self.root.iconphoto(False, icon)
-        self.filename = script_dir / 'MCQAnswersPlusText.csv'
+        self.filename = os.path.join(script_dir, 'MCQAnswersPlusText.csv')
         self.text = False
         self.student_id = None 
         self.correct_password = "password"
@@ -371,7 +370,7 @@ class TestApp():
 
         style = ttk.Style()
         style.map("Custom.TRadiobutton",
-                  foreground=[('selected', 'black')])  # Change 'black' to your desired dot color
+                  foreground=[('selected', 'black')]) 
         style.configure("Custom.TRadiobutton", background=self.bg_color, font=self.custom_font, foreground=self.fg_color)
 
         for radio_button in radiobuttons_list:
@@ -441,7 +440,7 @@ class TestApp():
     def update_score_label(self):
         if self.score > 0:
             percentage_score = self.calculate_score()
-            self.score_label.config(text=f'Score = {percentage_score}%',  font=('Courier New', 15), bg=self.bg_color, fg=self.fg_color)
+            self.score_label.config(text=f'Score = {percentage_score}%',  font=self.custom_font, bg=self.bg_color, fg=self.fg_color)
             if percentage_score > 79:
                 self.score_label.config(fg=self.fg_color)
             elif percentage_score > 70:
