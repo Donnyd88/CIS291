@@ -2,22 +2,31 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox 
 import csv
 import os
-from pathlib import Path
 from tkinter import PhotoImage
 import logging
 import bcrypt
+from tkinter.font import Font
 
 
 class TestApp():
     def __init__(self):
         self.root = tk.Tk()
         self.root.geometry("1200x800")
+        alabaster = "#F1F4FF"
+        silver = "#A2A2A1"
+        blue = "#4267B2"
+        light_grey = "#F1F3F4"
+        self.bg_color = blue
+        self.fg_color = light_grey
+        self.root.configure(bg=self.bg_color) 
         self.root.title("Test App")
-        script_dir = Path(__file__).parent  # Get the directory of the current script
-        file_path = script_dir / 'mccLogo.png'
+        self.custom_font = Font(family="Lato", size=15)
+        self.title_font = Font(family="Lato", size=20, weight="bold", slant="italic", underline=1)
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        file_path = os.path.join(script_dir, 'mccLogo.png')
         icon = PhotoImage(file=file_path)
         self.root.iconphoto(False, icon)
-        self.filename = script_dir / 'MCQAnswersPlusText.csv'
+        self.filename = os.path.join(script_dir, 'MCQAnswersPlusText.csv')
         self.text = False
         self.student_id = None 
         self.correct_password = "password"
@@ -108,28 +117,35 @@ class TestApp():
         if self.educator_frame:
             self.educator_frame.destroy()
         self.welcome_frame = tk.Frame(self.root)
+        self.welcome_frame.configure(bg=self.bg_color)
         self.welcome_frame.pack(fill='both', expand=True)
 
-        welcome_label = tk.Label(self.welcome_frame, text="Welcome to the Test App!", font=('Helvetica', 20))
+        welcome_label = tk.Label(self.welcome_frame, text="Welcome to the Test App!", font= self.title_font, foreground=self.fg_color,  background=self.bg_color)
         welcome_label.pack(pady=20)
 
         # Student ID Entry
         student_id_label = tk.Label(self.welcome_frame, text="Enter Student ID or Name:")
         student_id_label.pack(pady=(30,10))
+        student_id_label.configure(foreground=self.fg_color, font= self.custom_font,  background=self.bg_color)
         self.student_id_entry = tk.Entry(self.welcome_frame)
+        self.student_id_entry.configure(bg="white", font= self.custom_font)
         self.student_id_entry.pack(pady=5)
 
         button_frame = tk.Frame(self.welcome_frame)
         button_frame.pack(side="bottom", pady=(0, 100))
+        button_frame.configure(bg=self.bg_color)
 
-        self.error_label = tk.Label(self.welcome_frame,  fg="red", font=('Helvetica', 12), text="")
+        self.error_label = tk.Label(self.welcome_frame,  fg="red", font=self.custom_font, text="")
+        self.error_label.configure(bg=self.bg_color)
         self.error_label.pack(side="bottom", padx=10, pady=10)
 
         educator_button = tk.Button(button_frame, text="For Educators", command=self.for_educators_page)
+        educator_button.configure(bg=self.bg_color, font= self.custom_font, fg=self.fg_color)
         educator_button.pack(side="left", padx=10, pady=10)
 
     
         start_button = tk.Button(button_frame, text="Start Test", command=self.can_start_test)
+        start_button.configure(bg=self.bg_color, font= self.custom_font, fg=self.fg_color)
         start_button.pack(side="left", padx=10, pady=10)
 
     def for_educators_page(self):
@@ -141,16 +157,20 @@ class TestApp():
 
         # Create the educator frame
         self.educator_frame = tk.Frame(self.root)
+        self.educator_frame.configure(bg=self.bg_color)
         self.educator_frame.pack(fill="both", expand=True)
 
         # Password Entry
         password_label = tk.Label(self.educator_frame, text="Enter password:")
+        password_label.configure(foreground=self.fg_color, font= self.custom_font,  background=self.bg_color)
         password_label.pack(pady=5)
         self.password_entry = tk.Entry(self.educator_frame, show="*")  # Show asterisks for password input
+        self.password_entry.configure(bg="white", font= self.custom_font)
         self.password_entry.pack(pady=5)
 
         # Button to submit password
         submit_button = tk.Button(self.educator_frame, text="Submit", command=self.check_password)
+        submit_button.configure(foreground=self.fg_color, font= self.custom_font,  background=self.bg_color)
         submit_button.pack(pady=5)
 
     def check_password(self):
@@ -168,49 +188,63 @@ class TestApp():
         if self.educator_frame:
             self.educator_frame.destroy()
         self.educator_frame = tk.Frame(self.root)
+        self.educator_frame.configure(bg=self.bg_color)
         self.educator_frame.pack(fill="both", expand=True)
 
-        welcome_teachers_label = tk.Label(self.educator_frame, text = "Welcome Educators!", font=('Helvetica', 20))
+        welcome_teachers_label = tk.Label(self.educator_frame, text = "Welcome Educators!", font=self.custom_font, foreground=self.fg_color,  background=self.bg_color, borderwidth=1, highlightthickness=1)
         welcome_teachers_label.pack(pady=20)
 
         pass_percent_label = tk.Label(self.educator_frame, text="Enter the Quick Pass Percentage:")
+        pass_percent_label.configure(foreground=self.fg_color, font= self.custom_font,  background=self.bg_color)
         pass_percent_label.pack(pady=5)
 
         self.pass_percent_entry = tk.Entry(self.educator_frame)
+        self.pass_percent_entry.configure(foreground=self.fg_color, font= self.custom_font,  background="white")
         self.pass_percent_entry.pack(pady=5)
 
         fail_percent_label = tk.Label(self.educator_frame, text ="Enter the Quick Fail Percentage:")
+        fail_percent_label.configure(foreground=self.fg_color, font= self.custom_font,  background=self.bg_color)
         fail_percent_label.pack(pady=5)
 
         self.fail_percent_entry = tk.Entry(self.educator_frame)
+        self.fail_percent_entry.configure(foreground=self.fg_color, font= self.custom_font,  background="white")
         self.fail_percent_entry.pack(pady=5)
         
         check_test_end_label = tk.Label(self.educator_frame, text = "What question number should the Quick Pass or Quick fail activete on?")
+        check_test_end_label.configure(foreground=self.fg_color, font= self.custom_font,  background=self.bg_color)
         check_test_end_label.pack(pady=5)
 
         self.check_test_end_entry = tk.Entry(self.educator_frame)
+        self.check_test_end_entry.configure(foreground=self.fg_color, font= self.custom_font,  background="white")
         self.check_test_end_entry.pack(pady=5)
 
         update_password_label = tk.Label(self.educator_frame, text = "Enter new password:")
+        update_password_label.configure(foreground=self.fg_color, font= self.custom_font,  background=self.bg_color)
         update_password_label.pack(pady=5)
 
         self.update_password_entry = tk.Entry(self.educator_frame, show = "*")
+        self.update_password_entry.configure(foreground=self.fg_color, font= self.custom_font,  background="white")
         self.update_password_entry.pack(pady=5)
 
 
         self.verify_update_password_label = tk.Label(self.educator_frame, text = "Re-enter new password:")
+        self.verify_update_password_label.configure(foreground=self.fg_color, font= self.custom_font,  background=self.bg_color)
         self.verify_update_password_label.pack(pady=5)
 
         self.verify_update_password_entry = tk.Entry(self.educator_frame, show = "*")
+        self.verify_update_password_entry.configure(foreground=self.fg_color, font= self.custom_font,  background="white")
         self.verify_update_password_entry.pack(pady=5)
 
         self.apply_outcome_label = tk.Label(self.educator_frame, text = "")
+        self.apply_outcome_label.configure(foreground=self.fg_color, font= self.custom_font,  background=self.bg_color)
         self.apply_outcome_label.pack(pady=5)
 
         button_frame = tk.Frame(self.educator_frame)
+        button_frame.configure(bg=self.bg_color)
         button_frame.pack(side="bottom", pady=(0, 100))
 
         back_button = tk.Button(button_frame, text = "Back", command = self.show_welcome_page)
+        back_button.configure(foreground=self.fg_color, font= self.custom_font,  background=self.bg_color)
         back_button.pack(side="left", padx=10, pady=10)
 
 
@@ -286,6 +320,7 @@ class TestApp():
 
 
         save_button = tk.Button(button_frame, text = "Save", command = save_variables)
+        save_button.configure(foreground=self.fg_color, font= self.custom_font,  background=self.bg_color)
         save_button.pack(side="left", padx=10, pady=10)
 
 
@@ -321,15 +356,30 @@ class TestApp():
 
         # Dropdown menu for file selection
         self.question = tk.Label(self.root, text='')
+        self.question.config(bg=self.bg_color, font=self.custom_font, fg=self.fg_color)
         self.selected_answer = tk.StringVar(value=None)
         self.score = 0
         self.number_of_wrong_answers = 0
 
         # Use Radiobuttons in a group
-        self.radiobutton1 = tk.Radiobutton(self.root, variable=self.selected_answer, value="1")
-        self.radiobutton2 = tk.Radiobutton(self.root, variable=self.selected_answer, value="2")
-        self.radiobutton3 = tk.Radiobutton(self.root, variable=self.selected_answer, value="3")
-        self.radiobutton4 = tk.Radiobutton(self.root, variable=self.selected_answer, value="4")
+        self.radiobutton1 = ttk.Radiobutton(self.root, variable=self.selected_answer, value="1")
+        self.radiobutton2 = ttk.Radiobutton(self.root, variable=self.selected_answer, value="2")
+        self.radiobutton3 = ttk.Radiobutton(self.root, variable=self.selected_answer, value="3")
+        self.radiobutton4 = ttk.Radiobutton(self.root, variable=self.selected_answer, value="4")
+        radiobuttons_list = [self.radiobutton1, self.radiobutton2, self.radiobutton3, self.radiobutton4]
+
+        style = ttk.Style()
+        style.map("Custom.TRadiobutton",
+                  foreground=[('selected', 'black')]) 
+        style.configure("Custom.TRadiobutton", background=self.bg_color, font=self.custom_font, foreground=self.fg_color)
+
+        for radio_button in radiobuttons_list:
+            radio_button.configure(style="Custom.TRadiobutton")
+
+        
+       # for radio_button in radiobuttons_list:
+            #radio_button.config(style="TRadiobutton", bg=self.bg_color, font=self.custom_font, foreground=self.fg_color, activebackground=self.fg_color, activeforeground=self.bg_color)
+
 
         self.question.grid(row=0, column=0, columnspan=4, pady=5)
         self.radiobutton1.grid(row=1, column=1, sticky='W', pady=(0, 0))
@@ -339,6 +389,7 @@ class TestApp():
 
         # Create and hide text entry
         self.text_entry = tk.Entry(self.root)
+        self.text_entry.configure(font=self.custom_font)
         self.text_entry.grid(row=4, column=0, columnspan=4, pady=10)
         self.text_entry.grid_forget()  # Hide the text entry initially
 
@@ -349,9 +400,11 @@ class TestApp():
             self.root.grid_columnconfigure(i, weight=1)
 
         self.next_button = tk.Button(self.root, text='Submit', command=self.nextquestion)
+        self.next_button.config(bg=self.bg_color, font=self.custom_font, fg=self.fg_color)
         self.next_button.grid(row=3, column=0, columnspan=4, pady=20)
 
         self.score_label = tk.Label(self.root, text=f'Score = {self.score}')
+        self.score_label.configure(bg=self.bg_color, font=self.custom_font, fg=self.fg_color)
         self.score_label.grid(row=1, column=3)
 
         self.question_number = 0
@@ -387,13 +440,13 @@ class TestApp():
     def update_score_label(self):
         if self.score > 0:
             percentage_score = self.calculate_score()
-            self.score_label.config(text=f'Score = {percentage_score}%')
+            self.score_label.config(text=f'Score = {percentage_score}%',  font=self.custom_font, bg=self.bg_color, fg=self.fg_color)
             if percentage_score > 79:
-                self.score_label.config(fg='green')
+                self.score_label.config(fg=self.fg_color)
             elif percentage_score > 70:
-                self.score_label.config(fg="orange")
+                self.score_label.config(fg=self.fg_color)
             else:
-                self.score_label.config(fg="red")
+                self.score_label.config(fg=self.fg_color)
         else:
             self.score_label.config(text=f'Score = {self.score}')
 
@@ -419,6 +472,28 @@ class TestApp():
         if hasattr(self, 'radio_buttons'):
             for button in self.radio_buttons:
                 button.config(state=tk.NORMAL)
+
+    def destroy_radio_buttons(self):
+        self.radiobutton1.grid_forget()
+        self.radiobutton2.grid_forget()
+        self.radiobutton3.grid_forget()
+        self.radiobutton4.grid_forget()
+
+    def create_radio_buttons(self):
+        # Add radio buttons to the grid layout
+        self.question.grid(row=0, column=0, columnspan=4, pady=5)
+        self.radiobutton1.grid(row=1, column=1, sticky='W', pady=(0, 0))
+        self.radiobutton2.grid(row=1, column=2, sticky='W', pady=(0, 0))
+        self.radiobutton3.grid(row=2, column=1, sticky='W', pady=(0, 0))
+        self.radiobutton4.grid(row=2, column=2, sticky='W', pady=(0, 0))
+      
+      
+        self.radiobutton1.config(text=self.questions[self.current_index][1])
+        self.radiobutton2.config(text=self.questions[self.current_index][2])
+        self.radiobutton3.config(text=self.questions[self.current_index][3])
+        self.radiobutton4.config(text=self.questions[self.current_index][4])
+
+
 
     def hide_text_entry(self):
         # Hide the text entry
@@ -498,33 +573,41 @@ class TestApp():
 
 
     def nextquestion(self):
-        
         self.checkanswer()
         self.question_number += 1
         self.current_index = (self.current_index + 1) % len(self.questions)
         self.question.config(text=self.questions[self.current_index][0])
+        
+        print("Updating radio button labels...")
         self.radiobutton1.config(text=self.questions[self.current_index][1])
         self.radiobutton2.config(text=self.questions[self.current_index][2])
         self.radiobutton3.config(text=self.questions[self.current_index][3])
         self.radiobutton4.config(text=self.questions[self.current_index][4])
+        print(self.questions[self.current_index][1])
+        print(self.questions[self.current_index][2])
+        print(self.questions[self.current_index][3])
+        print(self.questions[self.current_index][4])
 
         question_type = self.questions[self.current_index][-1]
-        print(f"question type: {question_type}")
-        self.text = False
+        print(f"Question type: {question_type}")
+        
         if question_type == "text":
             self.text = True
-            self.disable_radio_buttons()
+            self.destroy_radio_buttons()
             self.show_text_entry()
             self.selected_answer.set(None)  # Reset selected_answer variable to None for text questions
             # Move the Submit button to a different row
             self.next_button.grid(row=4, column=0, columnspan=4, pady=20)
         else:
+            self.text = False
             self.hide_text_entry()
             self.enable_radio_buttons()
+            self.create_radio_buttons()
             self.selected_answer.set(None)  # Reset selected_answer variable to None for text questions
             # Move the Submit button back to row 3
             self.next_button.grid(row=3, column=0, columnspan=4, pady=20)
 
+      
         self.update_score_label()
         self.test_end()
         if self.test_over:
