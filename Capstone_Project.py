@@ -125,11 +125,11 @@ class TestApp():
 
         # Student ID Entry
         student_id_label = tk.Label(self.welcome_frame, text="Enter Student ID or Name:")
-        student_id_label.pack(pady=(30,10))
+        student_id_label.place(relx=0.5, rely=0.45, anchor="center")
         student_id_label.configure(foreground=self.fg_color, font= self.custom_font,  background=self.bg_color)
         self.student_id_entry = tk.Entry(self.welcome_frame)
         self.student_id_entry.configure(bg="white", font= self.custom_font)
-        self.student_id_entry.pack(pady=5)
+        self.student_id_entry.place(relx=0.5, rely=0.5, anchor="center")
 
         button_frame = tk.Frame(self.welcome_frame)
         button_frame.pack(side="bottom", pady=(0, 100))
@@ -163,15 +163,19 @@ class TestApp():
         # Password Entry
         password_label = tk.Label(self.educator_frame, text="Enter password:")
         password_label.configure(foreground=self.fg_color, font= self.custom_font,  background=self.bg_color)
-        password_label.pack(pady=5)
+        password_label.place(relx=0.5, rely=0.45, anchor="center")
         self.password_entry = tk.Entry(self.educator_frame, show="*")  # Show asterisks for password input
         self.password_entry.configure(bg="white", font= self.custom_font)
-        self.password_entry.pack(pady=5)
+        self.password_entry.place(relx=0.5, rely=0.5, anchor="center")
 
         # Button to submit password
         submit_button = tk.Button(self.educator_frame, text="Submit", command=self.check_password)
         submit_button.configure(foreground=self.fg_color, font= self.custom_font,  background=self.bg_color)
-        submit_button.pack(pady=5)
+        submit_button.place(relx=0.55, rely=0.6, anchor="center")
+
+        back_button = tk.Button(self.educator_frame, text="Back", command=self.show_welcome_page)
+        back_button.configure(foreground=self.fg_color, font= self.custom_font,  background=self.bg_color)
+        back_button.place(relx=0.45, rely=0.6, anchor="center")
 
     def check_password(self):
         # Get the entered password
