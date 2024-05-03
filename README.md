@@ -18,7 +18,10 @@ To install the Capstone Project, follow these steps:
 
     Note: This is a 64-bit Windows version.
 
-Alternatively, the Capstone_Project.py file can be run. This requires python to be installed.
+Alternatively, the Capstone_Project.py file can be run. This requires python to be installed, and the terminal to be in CIS291.
+Example: `cd CIS291`
+Next: `python .\Capstone_Project.py`
+
 
 
 ## Educator's Section
