@@ -5,7 +5,7 @@ a = Analysis(
     ['Capstone_Project.py'],
     pathex=[],
     binaries=[],
-    datas=[('MCQAnswersPlusText.csv', '.'), ('mccLogo.ico', '.')],
+    datas=[('mccLogo.ico', '.')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

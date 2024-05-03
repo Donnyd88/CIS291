@@ -34,7 +34,7 @@ class TestApp():
         icon = ImageTk.PhotoImage(ico_image)
         self.root.iconphoto(False, icon)
         script_dir = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
-        self.filename = os.path.join(script_dir, 'MCQAnswersPlusText.csv')
+        self.filename = 'MCQAnswersPlusText.csv'
         self.text = False
         self.student_id = None 
         self.correct_password = "password"
