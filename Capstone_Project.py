@@ -1,9 +1,11 @@
 import tkinter as tk
+import sys
 from tkinter import ttk, filedialog, messagebox 
 import csv
 import os
 from tkinter import PhotoImage
 import logging
+from PIL import Image, ImageTk
 import bcrypt
 from tkinter.font import Font
 
@@ -23,9 +25,15 @@ class TestApp():
         self.custom_font = Font(family="Lato", size=15)
         self.title_font = Font(family="Lato", size=20, weight="bold", slant="italic", underline=1)
         script_dir = os.path.dirname(os.path.abspath(__file__))
-        file_path = os.path.join(script_dir, 'mccLogo.png')
-        icon = PhotoImage(file=file_path)
+        file_path = os.path.join(script_dir, 'mccLogo.ico')
+        ico_image = Image.open(file_path)
+        if hasattr(sys, '_MEIPASS'):
+            file_path = os.path.join(sys._MEIPASS, 'mccLogo.ico')
+        else:
+            file_path = 'mccLogo.ico'
+        icon = ImageTk.PhotoImage(ico_image)
         self.root.iconphoto(False, icon)
+        script_dir = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
         self.filename = os.path.join(script_dir, 'MCQAnswersPlusText.csv')
         self.text = False
         self.student_id = None 
@@ -497,6 +505,10 @@ class TestApp():
         self.radiobutton3.config(text=self.questions[self.current_index][3])
         self.radiobutton4.config(text=self.questions[self.current_index][4])
 
+    def back_to_main_menu(self):
+        for widget in self.root.winfo_children():
+            widget.destroy()
+        self.show_welcome_page()
 
 
     def hide_text_entry(self):
@@ -570,7 +582,7 @@ class TestApp():
 
         print(f'Correct answer is: {correct_answer}')
         print(f"Inputted Text: {text_answer}")
-        if not self.text:  # Only print selected option for multiple-choice questions
+        if not self.text:  
             print(f"Selected option: {selected_answer_value}")
 
 
@@ -615,7 +627,7 @@ class TestApp():
         self.update_score_label()
         self.test_end()
         if self.test_over:
-            self.next_button.config(state=tk.DISABLED)
+              self.next_button.config(text="Main Menu", command=self.back_to_main_menu)
 
 
 
